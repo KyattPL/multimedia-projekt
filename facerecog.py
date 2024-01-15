@@ -1,9 +1,10 @@
 import face_recognition
 import cv2
 import numpy as np
+import requests
+from time import perf_counter
 
 if __name__ == "__main__":
-
     # Get a reference to webcam #0 (the default one)
     video_capture = cv2.VideoCapture(0)
 
@@ -11,18 +12,18 @@ if __name__ == "__main__":
     kajet_image = face_recognition.load_image_file("kajet.jpg")
     kajet_face_encoding = face_recognition.face_encodings(kajet_image)[0]
 
-    michal_image = face_recognition.load_image_file("michal.jpg")
-    michal_face_encoding = face_recognition.face_encodings(michal_image)[0]
+    #michal_image = face_recognition.load_image_file("michal.jpg")
+    #michal_face_encoding = face_recognition.face_encodings(michal_image)[0]
 
     # Create arrays of known face encodings and their names
     known_face_encodings = [
-        kajet_face_encoding,
-        michal_face_encoding
+        kajet_face_encoding
+        #michal_face_encoding
     ]
 
     known_face_names = [
-        "Kajetan P.",
-        "Michal S."
+        "Kajetan P."
+        #"Michal S."
     ]
 
     # Initialize some variables
@@ -30,6 +31,8 @@ if __name__ == "__main__":
     face_encodings = []
     face_names = []
     process_this_frame = True
+
+    timestep = None
 
     while True:
         # Grab a single frame of video
@@ -70,7 +73,6 @@ if __name__ == "__main__":
 
         process_this_frame = not process_this_frame
 
-
         # Display the results
         for (top, right, bottom, left), name in zip(face_locations, face_names):
             # Scale back up face locations since the frame we detected in was scaled to 1/4 size
@@ -79,21 +81,41 @@ if __name__ == "__main__":
             bottom *= 4
             left *= 4
 
-            # Draw a box around the face
-            cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+            if timestep is None:
+                timestep = perf_counter()
+            else:
+                break
 
-            # Draw a label with a name below the face
-            cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
-            font = cv2.FONT_HERSHEY_DUPLEX
-            cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+            if name == "Unknown":
+                cv2.imwrite("newFrame.jpg", frame)
 
-        # Display the resulting image
-        cv2.imshow('Video', frame)
+                requests.put("https://ntfy.sh/multimedia-projekt",
+                            data=open("./newFrame.jpg", "rb"),
+                            headers={
+                                "Filename": "newFrame.jpg"
+                            })
 
-        # Hit 'q' on the keyboard to quit!
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+            # # Draw a box around the face
+            # cv2.rectangle(frame, (left, top), (right, bottom), (0, 0, 255), 2)
+
+            # # Draw a label with a name below the face
+            # cv2.rectangle(frame, (left, bottom - 35), (right, bottom), (0, 0, 255), cv2.FILLED)
+            # font = cv2.FONT_HERSHEY_DUPLEX
+            # cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
+
+        if face_locations == []:
+            if timestep is not None and perf_counter() - timestep > 5:
+                timestep = None
+        else:
+            timestep = perf_counter()
+
+        # # Display the resulting image
+        # cv2.imshow('Video', frame)
+
+        # # Hit 'q' on the keyboard to quit!
+        # if cv2.waitKey(1) & 0xFF == ord('q'):
+        #     break
 
     # Release handle to the webcam
-    video_capture.release()
-    cv2.destroyAllWindows()
+    # video_capture.release()
+    # cv2.destroyAllWindows()
