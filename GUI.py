@@ -40,7 +40,7 @@ if __name__ == "__main__":
         if selected_item:
             record_id = selected_item[0]
             timestamp = selected_item[1]
-            recognized = "Yes" if selected_item[2] else "No"
+            recognized = "Yes" if selected_item[2] == 1 else "No"
             name = selected_item[3]
             image_filename = selected_item[4]
 
