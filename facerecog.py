@@ -7,6 +7,7 @@ import sqlite3
 from datetime import datetime
 import os
 
+DEBOUNCE_TIME = 3
 
 def create_table(conn):
     cursor = conn.cursor()
@@ -140,7 +141,7 @@ if __name__ == "__main__":
             cv2.imwrite(filename, frame)
 
             if name == "Unknown":
-                cv2.imwrite("newFrame.jpg", frame)
+                #cv2.imwrite("newFrame.jpg", frame)
 
                 # Dodaj rekord do bazy danych
                 add_record(conn, False, name, filename)
@@ -162,7 +163,7 @@ if __name__ == "__main__":
             cv2.putText(frame, name, (left + 6, bottom - 6), font, 1.0, (255, 255, 255), 1)
 
         if face_locations == []:
-            if timestep is not None and perf_counter() - timestep > 5:
+            if timestep is not None and perf_counter() - timestep > DEBOUNCE_TIME:
                 timestep = None
         else:
             timestep = perf_counter()
