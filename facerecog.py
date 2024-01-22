@@ -141,7 +141,7 @@ if __name__ == "__main__":
             cv2.imwrite(filename, frame)
 
             if name == "Unknown":
-                #cv2.imwrite("newFrame.jpg", frame)
+                cv2.imwrite("newFrame.jpg", frame)
 
                 # Dodaj rekord do bazy danych
                 add_record(conn, False, name, filename)
